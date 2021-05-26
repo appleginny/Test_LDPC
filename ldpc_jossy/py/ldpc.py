@@ -1,5 +1,5 @@
 from types import DynamicClassAttribute
-import numpy as np
+import numpy as nphttps://github.com/appleginny/Test_LDPC/blob/main/ldpc_jossy/py/ldpc.py
 import ctypes as ct
 
 class code:
@@ -489,142 +489,142 @@ class code:
         return app, it
 
     def Lxor(self, L1, L2, corrflag=1):
-        # c_ldpc = ct.CDLL('./bin/c_ldpc.so')
-        # c_ldpc.Lxor.restype = ct.c_double
-        # return c_ldpc.Lxor(ct.c_double(L1), ct.c_double(L2), corrflag)
+        c_ldpc = ct.CDLL('./bin/c_ldpc.so')
+        c_ldpc.Lxor.restype = ct.c_double
+        return c_ldpc.Lxor(ct.c_double(L1), ct.c_double(L2), corrflag)
 
         # min rule, first multiply the signs, both -1 or both 1 senarios give 1
-        if L1 * L2 >0:
-            L = 1
-        else:
-            L = -1
-        L *= min(abs(L1), abs(L2))
-        if corrflag:
-            L += np.log(1 + np.exp(-abs(L1 + L2)))
-            L -= np.log(1 + np.exp(-abs(L1 - L2)))
-        return L
+#         if L1 * L2 >0:
+#             L = 1
+#         else:
+#             L = -1
+#         L *= min(abs(L1), abs(L2))
+#         if corrflag:
+#             L += np.log(1 + np.exp(-abs(L1 + L2)))
+#             L -= np.log(1 + np.exp(-abs(L1 - L2)))
+#         return L
 
     def Lxfb(self, L, corrflag=1):
-        # c_ldpc = ct.CDLL('./bin/c_ldpc.so')
-        # dc = len(L)
-        # L = np.array(L, dtype=float)
-        # L_p = L.ctypes.data_as(ct.POINTER(ct.c_double))
-        # c_ldpc.Lxfb.restype = ct.c_double
-        # return c_ldpc.Lxfb(L_p, dc, corrflag), L
-
+        c_ldpc = ct.CDLL('./bin/c_ldpc.so')
         dc = len(L)
-        f = []
-        b = []
-        f[0] = L[0]
-        b[dc-1] = L[dc-1]
+        L = np.array(L, dtype=float)
+        L_p = L.ctypes.data_as(ct.POINTER(ct.c_double))
+        c_ldpc.Lxfb.restype = ct.c_double
+        return c_ldpc.Lxfb(L_p, dc, corrflag), L
 
-        for k in range(dc):
-            f[k] = self.Lxor(f[k-1], L[k], corrflag)
-            b[dc-k-1] = self.Lxor(b[dc-k-1], L[dc-k-1], corrflag)
+#         dc = len(L)
+#         f = []
+#         b = []
+#         f[0] = L[0]
+#         b[dc-1] = L[dc-1]
+
+#         for k in range(dc):
+#             f[k] = self.Lxor(f[k-1], L[k], corrflag)
+#             b[dc-k-1] = self.Lxor(b[dc-k-1], L[dc-k-1], corrflag)
         
-        L[0] = b[1]
-        L[dc-1] = f[dc-2]
+#         L[0] = b[1]
+#         L[dc-1] = f[dc-2]
 
-        for k_ in range(dc-1):
-            L[k] = self.Lxor(f[k-1], b[k+1], corrflag)
+#         for k_ in range(dc-1):
+#             L[k] = self.Lxor(f[k-1], b[k+1], corrflag)
         
-        return b[0]
+#         return b[0]
 
-    def sumprod(self, ch, vdeg, cdeg, intrlv, Nv, Nc, Nmsg, app):
-        msg = np.zeros(Nmsg)
+#     def sumprod(self, ch, vdeg, cdeg, intrlv, Nv, Nc, Nmsg, app):
+#         msg = np.zeros(Nmsg)
 
-        # main loop, will iterate until stopping criterion is fulfilled
-        for itcount in range(self.MAX_ITCOUNT):
+#         # main loop, will iterate until stopping criterion is fulfilled
+#         for itcount in range(self.MAX_ITCOUNT):
 
-            # variable node rule ('sum')
-            imsg = 0
-            for j in range(Nv):
-                aggr = ch[j]
-                for k in range(vdeg[j]):#
-                    aggr += msg[intrlv[imsg]]
-                    imsg += 1
-                imsg -= vdeg[j]
-                for k in range(vdeg[j]):
-                    msg[intrlv[imsg]] = aggr - msg[intrlv[imsg]]
-                    imsg += 1
-                app[j] = aggr
-            stopflag = 0
+#             # variable node rule ('sum')
+#             imsg = 0
+#             for j in range(Nv):
+#                 aggr = ch[j]
+#                 for k in range(vdeg[j]):#
+#                     aggr += msg[intrlv[imsg]]
+#                     imsg += 1
+#                 imsg -= vdeg[j]
+#                 for k in range(vdeg[j]):
+#                     msg[intrlv[imsg]] = aggr - msg[intrlv[imsg]]
+#                     imsg += 1
+#                 app[j] = aggr
+#             stopflag = 0
 
-            # constraint node rule ('product')
-            imsg = 0
-            for j in range(Nc):
-                aggr = 1
-                for k in range(cdeg[j]):
-                    msg[imsg] = np.tanh(msg[imsg]/2)
-                    aggr *= msg[imsg]
-                    imsg += 1
+#             # constraint node rule ('product')
+#             imsg = 0
+#             for j in range(Nc):
+#                 aggr = 1
+#                 for k in range(cdeg[j]):
+#                     msg[imsg] = np.tanh(msg[imsg]/2)
+#                     aggr *= msg[imsg]
+#                     imsg += 1
             
-                if (stopflag == 0 and 2*np.arctanh(aggr) <= 0):
-                    stopflag = 1
-                imsg -= cdeg[j]
+#                 if (stopflag == 0 and 2*np.arctanh(aggr) <= 0):
+#                     stopflag = 1
+#                 imsg -= cdeg[j]
 
-                for k in range(cdeg[j]):
-                    msg[imsg] = 2 *np.arctanh(aggr/msg[imsg])
-                    imsg += 1
+#                 for k in range(cdeg[j]):
+#                     msg[imsg] = 2 *np.arctanh(aggr/msg[imsg])
+#                     imsg += 1
 
-            if stopflag == False:
-                break
-        return itcount
+#             if stopflag == False:
+#                 break
+#         return itcount
     
-    def sumprod2(self, ch, vdeg, cdeg, intrlv, Nv, Nc, Nmsg, app):
-        msg = np.zeros(Nmsg)
+#     def sumprod2(self, ch, vdeg, cdeg, intrlv, Nv, Nc, Nmsg, app):
+#         msg = np.zeros(Nmsg)
 
-        for itcount in range(self.MAX_ITCOUNT):
-            # Vairable node
-            imsg = 0
-            for j in range(Nv):
-                aggr = ch[j]
-                for k in range(vdeg[j]):
-                    aggr += msg[intrlv[imsg]]
-                    imsg += 1
-                imsg -= vdeg[j]
-                for k in range(vdeg[j]):
-                    msg[intrlv[imsg]] = aggr - msg[intrlv[imsg]]
-                    imsg += 1
-                app[j] = aggr
-            stopflag = 0
+#         for itcount in range(self.MAX_ITCOUNT):
+#             # Vairable node
+#             imsg = 0
+#             for j in range(Nv):
+#                 aggr = ch[j]
+#                 for k in range(vdeg[j]):
+#                     aggr += msg[intrlv[imsg]]
+#                     imsg += 1
+#                 imsg -= vdeg[j]
+#                 for k in range(vdeg[j]):
+#                     msg[intrlv[imsg]] = aggr - msg[intrlv[imsg]]
+#                     imsg += 1
+#                 app[j] = aggr
+#             stopflag = 0
 
-            # Constraint mode
-            imsg = 0
-            for j in range(Nc):
-                aggr = self.Lxfb(np.asarray[msg[imsg]], cdeg[j], 1)
-                if (stopflag == 0 and aggr <=0):
-                    stopflag = 1
-                imsg += cdeg[j] 
-            if stopflag == False:
-                break
-        return itcount
+#             # Constraint mode
+#             imsg = 0
+#             for j in range(Nc):
+#                 aggr = self.Lxfb(np.asarray[msg[imsg]], cdeg[j], 1)
+#                 if (stopflag == 0 and aggr <=0):
+#                     stopflag = 1
+#                 imsg += cdeg[j] 
+#             if stopflag == False:
+#                 break
+#         return itcount
 
-    def minsum(self, ch, vdeg, cdeg, intrlv, Nv, Nc, Nmsg, app, corr_factor):
-        msg = np.zeros(Nmsg)
-        for itcount in range(self.MAX_ITCOUNT):
-            # var node
-            imsg = 0
-            for j in range(Nv):
-                aggr = ch[j]
-                for k in range(vdeg[j]):
-                    msg[intrlv[imsg]] = aggr - msg[intrlv[imsg]]
-                    imsg += 1
-                app[j] = aggr
-            stopflag = 0
+#     def minsum(self, ch, vdeg, cdeg, intrlv, Nv, Nc, Nmsg, app, corr_factor):
+#         msg = np.zeros(Nmsg)
+#         for itcount in range(self.MAX_ITCOUNT):
+#             # var node
+#             imsg = 0
+#             for j in range(Nv):
+#                 aggr = ch[j]
+#                 for k in range(vdeg[j]):
+#                     msg[intrlv[imsg]] = aggr - msg[intrlv[imsg]]
+#                     imsg += 1
+#                 app[j] = aggr
+#             stopflag = 0
 
-            # constraint node
-            imsg = 0
-            for j in range(Nc):
-                imsg += cdeg[j]
-                aggr = self.Lxfb(msg[imsg], cdeg[j], 0)
+#             # constraint node
+#             imsg = 0
+#             for j in range(Nc):
+#                 imsg += cdeg[j]
+#                 aggr = self.Lxfb(msg[imsg], cdeg[j], 0)
 
-                if (stopflag == 0 and aggr <=0):
-                    stopflag = 1
+#                 if (stopflag == 0 and aggr <=0):
+#                     stopflag = 1
                 
-                for k in range(cdeg[j]):
-                    msg[imsg + k] *= corr_factor
-            if stopflag == False:
-                break
-        return itcount
+#                 for k in range(cdeg[j]):
+#                     msg[imsg + k] *= corr_factor
+#             if stopflag == False:
+#                 break
+#         return itcount
 
